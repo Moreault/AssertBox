@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AssertBox.UnitTests/AssertBox.UnitTests.csproj" />
+  <Project Path="AssertBox/AssertBox.csproj" />
+</Solution>
