@@ -90,4 +90,15 @@ public static class ActionAssertions
             return a;
         }
     }
+
+    extension<TException>(Assertions<TException> a) where TException : ArgumentException
+    {
+        public Assertions<TException> WithParameterName(string expected)
+        {
+            Fail.When(
+                !string.Equals(a.Subject.ParamName, expected, StringComparison.Ordinal),
+                () => MessageBuilder.Expected(a.SubjectExpression, $"exception parameter name to be {MessageBuilder.Format(expected)}", a.Subject.ParamName));
+            return a;
+        }
+    }
 }
