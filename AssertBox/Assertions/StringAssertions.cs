@@ -1,4 +1,4 @@
-namespace AssertBox.Assertions;
+namespace ToolBX.AssertBox.Assertions;
 
 public static class StringAssertions
 {

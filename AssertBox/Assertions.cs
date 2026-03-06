@@ -1,3 +1,3 @@
-namespace AssertBox;
+namespace ToolBX.AssertBox;
 
 public readonly record struct Assertions<T>(T Subject, string SubjectExpression);

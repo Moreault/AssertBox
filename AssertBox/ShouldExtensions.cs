@@ -1,4 +1,4 @@
-namespace AssertBox;
+namespace ToolBX.AssertBox;
 
 public static class ShouldExtensions
 {

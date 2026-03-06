@@ -1,4 +1,4 @@
-namespace AssertBox;
+namespace ToolBX.AssertBox;
 
 public sealed class AssertBoxException : Exception
 {
