@@ -78,20 +78,20 @@ public class ObjectAssertionTests
     [TestMethod]
     public void BeOfType_WithMatchingType_ShouldPass()
     {
-        "hello".Should().BeOfType<string, string>();
+        "hello".Should().BeOfType<string>();
     }
 
     [TestMethod]
     public void BeOfType_WithNonMatchingType_ShouldFail()
     {
-        Action act = () => "hello".Should().BeOfType<int, string>();
+        Action act = () => "hello".Should().BeOfType<int>();
         act.Should().Throw<AssertBoxException>();
     }
 
     [TestMethod]
     public void BeAssignableTo_WithAssignableType_ShouldPass()
     {
-        "hello".Should().BeAssignableTo<IComparable, string>();
+        "hello".Should().BeAssignableTo<IComparable>();
     }
 
     [TestMethod]

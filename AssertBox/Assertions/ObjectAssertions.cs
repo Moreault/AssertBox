@@ -35,6 +35,14 @@ public static class ObjectAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "not to be <null>", MessageBuilder.OmitActual));
             return a;
         }
+
+        public Assertions<T> Satisfy(Func<T, bool> predicate)
+        {
+            Fail.When(
+                !predicate(a.Subject),
+                MessageBuilder.Expected(a.SubjectExpression, "to satisfy the given predicate", a.Subject));
+            return a;
+        }
     }
 
     extension<T>(Assertions<T> a) where T : class?
@@ -54,30 +62,6 @@ public static class ObjectAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "not to be the same reference", MessageBuilder.OmitActual));
             return a;
         }
-    }
-
-    public static Assertions<T> BeOfType<TExpected, T>(this Assertions<T> a)
-    {
-        Fail.When(
-            a.Subject is null || a.Subject.GetType() != typeof(TExpected),
-            () => MessageBuilder.Expected(a.SubjectExpression, $"to be of type {typeof(TExpected).Name}", a.Subject?.GetType().Name ?? "<null>"));
-        return a;
-    }
-
-    public static Assertions<T> BeAssignableTo<TExpected, T>(this Assertions<T> a)
-    {
-        Fail.When(
-            a.Subject is not TExpected,
-            () => MessageBuilder.Expected(a.SubjectExpression, $"to be assignable to {typeof(TExpected).Name}", a.Subject?.GetType().Name ?? "<null>"));
-        return a;
-    }
-
-    public static Assertions<T> Satisfy<T>(this Assertions<T> a, Func<T, bool> predicate)
-    {
-        Fail.When(
-            !predicate(a.Subject),
-            MessageBuilder.Expected(a.SubjectExpression, "to satisfy the given predicate", a.Subject));
-        return a;
     }
 
     private static bool Equals<T>(T? left, T? right) =>

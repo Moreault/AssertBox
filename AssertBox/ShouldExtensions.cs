@@ -16,4 +16,9 @@ public static class ShouldExtensions
         this Func<Task> subject,
         [CallerArgumentExpression(nameof(subject))] string expression = "") =>
         new(subject, expression);
+
+    public static Assertions<Action> Should<T>(
+        this Func<T> subject,
+        [CallerArgumentExpression(nameof(subject))] string expression = "") =>
+        new(() => { subject(); }, expression);
 }
