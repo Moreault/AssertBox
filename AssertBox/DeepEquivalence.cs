@@ -8,6 +8,8 @@ internal static class DeepEquivalence
         return AreEquivalent(left, right, out difference, path, visited);
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2072",
+        Justification = "DeepEquivalence compares objects whose types are known at runtime.")]
     private static bool AreEquivalent(object? left, object? right, out string? difference, string path, HashSet<(object, object)> visited)
     {
         difference = null;
@@ -102,9 +104,8 @@ internal static class DeepEquivalence
         return true;
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
-        Justification = "DeepEquivalence compares objects whose types are known at runtime.")]
-    private static PropertyInfo[] GetPublicProperties(Type type) =>
+    private static PropertyInfo[] GetPublicProperties(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
     private sealed class ReferenceEqualityComparer : IEqualityComparer<(object, object)>
