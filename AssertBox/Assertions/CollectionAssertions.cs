@@ -28,6 +28,24 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, $"to have count {expected}", actual));
             return a;
         }
+
+        public Assertions<T> HaveCountGreaterThan(int expected)
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual <= expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to have count greater than {expected}", actual));
+            return a;
+        }
+
+        public Assertions<T> HaveCountLessThan(int expected)
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual >= expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to have count less than {expected}", actual));
+            return a;
+        }
     }
 
     public static Assertions<TCollection> Contain<TCollection, TElement>(
@@ -138,23 +156,223 @@ public static class CollectionAssertions
         return a;
     }
 
-    extension<T>(Assertions<T> a) where T : IEnumerable
+    // Concrete overloads for predicate methods to enable lambda type inference.
+    // The generic two-type-parameter versions above require explicit Func<T, bool> casts
+    // because the compiler can't infer TElement from a lambda. These single-type-parameter
+    // overloads resolve TElement from the receiver type, enabling natural lambda syntax.
+
+    extension<TElement>(Assertions<TElement[]> a)
     {
-        public Assertions<T> HaveCountGreaterThan(int expected)
+        public Assertions<TElement[]> Contain(Func<TElement, bool> predicate)
         {
-            var actual = Count(a.Subject);
             Fail.When(
-                actual <= expected,
-                MessageBuilder.Expected(a.SubjectExpression, $"to have count greater than {expected}", actual));
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
             return a;
         }
 
-        public Assertions<T> HaveCountLessThan(int expected)
+        public Assertions<TElement[]> AllSatisfy(Func<TElement, bool> predicate)
         {
-            var actual = Count(a.Subject);
             Fail.When(
-                actual >= expected,
-                MessageBuilder.Expected(a.SubjectExpression, $"to have count less than {expected}", actual));
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<TElement[]> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<List<TElement>> a)
+    {
+        public Assertions<List<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<List<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<List<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<IEnumerable<TElement>> a)
+    {
+        public Assertions<IEnumerable<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IEnumerable<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IEnumerable<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<IList<TElement>> a)
+    {
+        public Assertions<IList<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IList<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IList<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<ICollection<TElement>> a)
+    {
+        public Assertions<ICollection<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<ICollection<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<ICollection<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<IReadOnlyList<TElement>> a)
+    {
+        public Assertions<IReadOnlyList<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IReadOnlyList<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IReadOnlyList<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<IReadOnlyCollection<TElement>> a)
+    {
+        public Assertions<IReadOnlyCollection<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IReadOnlyCollection<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IReadOnlyCollection<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<HashSet<TElement>> a)
+    {
+        public Assertions<HashSet<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<HashSet<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<HashSet<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
             return a;
         }
     }

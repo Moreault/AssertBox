@@ -57,19 +57,19 @@ public class CollectionAssertionTests
     [TestMethod]
     public void Contain_WithPredicate_ShouldPass()
     {
-        new[] { 1, 2, 3 }.Should().Contain((Func<int, bool>)(x => x > 2));
+        new[] { 1, 2, 3 }.Should().Contain(x => x > 2);
     }
 
     [TestMethod]
     public void AllSatisfy_WithAllMatching_ShouldPass()
     {
-        new[] { 2, 4, 6 }.Should().AllSatisfy((Func<int, bool>)(x => x % 2 == 0));
+        new[] { 2, 4, 6 }.Should().AllSatisfy(x => x % 2 == 0);
     }
 
     [TestMethod]
     public void AllSatisfy_WithSomeNotMatching_ShouldFail()
     {
-        Action act = () => new[] { 2, 3, 6 }.Should().AllSatisfy((Func<int, bool>)(x => x % 2 == 0));
+        Action act = () => new[] { 2, 3, 6 }.Should().AllSatisfy(x => x % 2 == 0);
         act.Should().Throw<AssertBoxException>();
     }
 
@@ -139,12 +139,18 @@ public class CollectionAssertionTests
     [TestMethod]
     public void OnlyContain_WithAllMatching_ShouldPass()
     {
-        new[] { 2, 4, 6 }.Should().OnlyContain((Func<int, bool>)(x => x % 2 == 0));
+        new[] { 2, 4, 6 }.Should().OnlyContain(x => x % 2 == 0);
     }
 
     [TestMethod]
     public void WorksWithList()
     {
         new List<string> { "a", "b" }.Should().HaveCount(2).Contain("a");
+    }
+
+    [TestMethod]
+    public void OnlyContain_WithListAndLambda_ShouldInferTypes()
+    {
+        new List<string> { "a", "bb" }.Should().OnlyContain(x => x.Length > 0);
     }
 }

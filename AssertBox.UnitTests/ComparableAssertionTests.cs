@@ -59,4 +59,28 @@ public class ComparableAssertionTests
     {
         50.Should().BeGreaterThan(0).BeLessThan(100).BeInRange(1, 99);
     }
+
+    [TestMethod]
+    public void BeGreaterThan_WithByte_ShouldPass()
+    {
+        ((byte)5).Should().BeGreaterThan(0);
+    }
+
+    [TestMethod]
+    public void BeGreaterThan_WithShort_ShouldPass()
+    {
+        ((short)10).Should().BeGreaterThan(0);
+    }
+
+    [TestMethod]
+    public void BeLessThan_WithSByte_ShouldPass()
+    {
+        ((sbyte)5).Should().BeLessThan(10);
+    }
+
+    [TestMethod]
+    public void BeInRange_WithUShort_ShouldPass()
+    {
+        ((ushort)50).Should().BeInRange(1, 100);
+    }
 }
