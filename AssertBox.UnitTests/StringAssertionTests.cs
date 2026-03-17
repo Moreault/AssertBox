@@ -112,6 +112,45 @@ public class StringAssertionTests
     }
 
     [TestMethod]
+    public void BeNullOrWhiteSpace_WithWhiteSpace_ShouldPass()
+    {
+        "   ".Should().BeNullOrWhiteSpace();
+    }
+
+    [TestMethod]
+    public void BeNullOrWhiteSpace_WithEmpty_ShouldPass()
+    {
+        "".Should().BeNullOrWhiteSpace();
+    }
+
+    [TestMethod]
+    public void BeNullOrWhiteSpace_WithContent_ShouldFail()
+    {
+        Action act = () => "hello".Should().BeNullOrWhiteSpace();
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void NotBeNullOrWhiteSpace_WithContent_ShouldPass()
+    {
+        "hello".Should().NotBeNullOrWhiteSpace();
+    }
+
+    [TestMethod]
+    public void NotBeNullOrWhiteSpace_WithWhiteSpace_ShouldFail()
+    {
+        Action act = () => "   ".Should().NotBeNullOrWhiteSpace();
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void NotBeNullOrWhiteSpace_WithEmpty_ShouldFail()
+    {
+        Action act = () => "".Should().NotBeNullOrWhiteSpace();
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
     public void Chaining_MultipleStringAssertions()
     {
         "hello world".Should().Contain("hello").EndWith("world").HaveLength(11);

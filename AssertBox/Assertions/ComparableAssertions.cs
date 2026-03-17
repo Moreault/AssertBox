@@ -144,6 +144,72 @@ public static class ComparableAssertions
         }
     }
 
+    extension(Assertions<uint> a)
+    {
+        public Assertions<uint> BeGreaterThan(uint expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) <= 0, MessageBuilder.Expected(a.SubjectExpression, $"to be greater than {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<uint> BeGreaterThanOrEqualTo(uint expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) < 0, MessageBuilder.Expected(a.SubjectExpression, $"to be greater than or equal to {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<uint> BeLessThan(uint expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) >= 0, MessageBuilder.Expected(a.SubjectExpression, $"to be less than {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<uint> BeLessThanOrEqualTo(uint expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) > 0, MessageBuilder.Expected(a.SubjectExpression, $"to be less than or equal to {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<uint> BeInRange(uint min, uint max)
+        {
+            Fail.When(a.Subject.CompareTo(min) < 0 || a.Subject.CompareTo(max) > 0, MessageBuilder.Expected(a.SubjectExpression, $"to be in range [{min}, {max}]", a.Subject));
+            return a;
+        }
+    }
+
+    extension(Assertions<ulong> a)
+    {
+        public Assertions<ulong> BeGreaterThan(ulong expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) <= 0, MessageBuilder.Expected(a.SubjectExpression, $"to be greater than {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<ulong> BeGreaterThanOrEqualTo(ulong expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) < 0, MessageBuilder.Expected(a.SubjectExpression, $"to be greater than or equal to {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<ulong> BeLessThan(ulong expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) >= 0, MessageBuilder.Expected(a.SubjectExpression, $"to be less than {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<ulong> BeLessThanOrEqualTo(ulong expected)
+        {
+            Fail.When(a.Subject.CompareTo(expected) > 0, MessageBuilder.Expected(a.SubjectExpression, $"to be less than or equal to {expected}", a.Subject));
+            return a;
+        }
+
+        public Assertions<ulong> BeInRange(ulong min, ulong max)
+        {
+            Fail.When(a.Subject.CompareTo(min) < 0 || a.Subject.CompareTo(max) > 0, MessageBuilder.Expected(a.SubjectExpression, $"to be in range [{min}, {max}]", a.Subject));
+            return a;
+        }
+    }
+
     extension(Assertions<ushort> a)
     {
         public Assertions<ushort> BeGreaterThan(ushort expected)

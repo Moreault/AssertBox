@@ -116,6 +116,25 @@ public class ObjectAssertionTests
     }
 
     [TestMethod]
+    public void BeOneOf_WithMatchingValue_ShouldPass()
+    {
+        42.Should().BeOneOf(1, 42, 100);
+    }
+
+    [TestMethod]
+    public void BeOneOf_WithNoMatchingValue_ShouldFail()
+    {
+        Action act = () => 42.Should().BeOneOf(1, 2, 3);
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void BeOneOf_WithStrings_ShouldPass()
+    {
+        "hello".Should().BeOneOf("hi", "hello", "hey");
+    }
+
+    [TestMethod]
     public void Chaining_MultipleAssertions_ShouldWork()
     {
         42.Should().NotBeNull().Be(42).NotBe(0);

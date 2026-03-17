@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace AssertBox.UnitTests;
 
 [TestClass]
@@ -74,6 +76,13 @@ public class CollectionAssertionTests
     }
 
     [TestMethod]
+    public void AllSatisfy_WithSameElement_ShouldPass()
+    {
+        var stuff = new[] { 1, 1, 1 };
+        stuff.Should().AllSatisfy(x => x.Should().Be(1));
+    }
+
+    [TestMethod]
     public void BeEquivalentTo_SameElementsDifferentOrder_ShouldPass()
     {
         new[] { 3, 1, 2 }.Should().BeEquivalentTo([1, 2, 3]);
@@ -84,6 +93,32 @@ public class CollectionAssertionTests
     {
         Action act = () => new[] { 1, 2, 3 }.Should().BeEquivalentTo([1, 2, 4]);
         act.Should().Throw<AssertBoxException>();
+    }
+
+    public sealed record Garbage
+    {
+        public int Id { get; init; }
+        public string Name { get; init; } = string.Empty;
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_SameNonComparableElements_ShouldPass()
+    {
+        IEnumerable<Garbage> list1 = new List<Garbage>
+        {
+            new() { Id = 44, Name = "Roger" },
+            new() { Id = 45, Name = "Seb" },
+            new() { Id = 86, Name = "Gertrude" },
+        };
+
+        IEnumerable<Garbage> list2 = new List<Garbage>
+        {
+            new() { Id = 44, Name = "Roger" },
+            new() { Id = 45, Name = "Seb" },
+            new() { Id = 86, Name = "Gertrude" },
+        };
+
+        list1.Should().BeEquivalentTo(list2);
     }
 
     [TestMethod]
@@ -152,5 +187,17 @@ public class CollectionAssertionTests
     public void OnlyContain_WithListAndLambda_ShouldInferTypes()
     {
         new List<string> { "a", "bb" }.Should().OnlyContain(x => x.Length > 0);
+    }
+
+    [TestMethod]
+    public void OnlyContain_WithImmutableListAndLambda_ShouldPass()
+    {
+        var abc = ImmutableList.CreateRange(new List<(int Id, string Name)>
+        {
+            (44, "Roger"),
+            (44, "Roger"),
+            (44, "Roger"),
+        });
+        abc.Should().OnlyContain(x => x == (Id: 44, Name: "Roger"));
     }
 }

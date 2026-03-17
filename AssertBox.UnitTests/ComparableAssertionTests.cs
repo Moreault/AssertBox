@@ -73,6 +73,18 @@ public class ComparableAssertionTests
     }
 
     [TestMethod]
+    public void BeGreaterThan_WithUint_ShouldPass()
+    {
+        ((uint)10).Should().BeGreaterThan(0);
+    }
+
+    [TestMethod]
+    public void BeGreaterThan_WithUlong_ShouldPass()
+    {
+        ((ulong)10).Should().BeGreaterThan(0);
+    }
+
+    [TestMethod]
     public void BeLessThan_WithSByte_ShouldPass()
     {
         ((sbyte)5).Should().BeLessThan(10);
@@ -83,4 +95,6 @@ public class ComparableAssertionTests
     {
         ((ushort)50).Should().BeInRange(1, 100);
     }
+
+
 }

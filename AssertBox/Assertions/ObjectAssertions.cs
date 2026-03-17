@@ -43,6 +43,52 @@ public static class ObjectAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "to satisfy the given predicate", a.Subject));
             return a;
         }
+
+        public Assertions<T> BeOneOf(params IEnumerable<T> expected)
+        {
+            Fail.When(
+                !expected.Contains(a.Subject),
+                MessageBuilder.Expected(a.SubjectExpression, $"to be one of {MessageBuilder.Format(expected)}", a.Subject));
+            return a;
+        }
+    }
+
+    extension(Assertions<uint> a)
+    {
+        public Assertions<uint> Be(uint expected)
+        {
+            Fail.When(
+                a.Subject != expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to be {MessageBuilder.Format(expected)}", a.Subject));
+            return a;
+        }
+
+        public Assertions<uint> NotBe(uint expected)
+        {
+            Fail.When(
+                a.Subject == expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"not to be {MessageBuilder.Format(expected)}", MessageBuilder.OmitActual));
+            return a;
+        }
+    }
+
+    extension(Assertions<ulong> a)
+    {
+        public Assertions<ulong> Be(ulong expected)
+        {
+            Fail.When(
+                a.Subject != expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to be {MessageBuilder.Format(expected)}", a.Subject));
+            return a;
+        }
+
+        public Assertions<ulong> NotBe(ulong expected)
+        {
+            Fail.When(
+                a.Subject == expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"not to be {MessageBuilder.Format(expected)}", MessageBuilder.OmitActual));
+            return a;
+        }
     }
 
     extension<T>(Assertions<T> a) where T : class?

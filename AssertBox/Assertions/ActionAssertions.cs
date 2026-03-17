@@ -1,42 +1,8 @@
 namespace ToolBX.AssertBox.Assertions;
 
+
 public static class ActionAssertions
 {
-    extension(Assertions<Action> a)
-    {
-        public Assertions<TException> Throw<TException>() where TException : Exception
-        {
-            try
-            {
-                a.Subject();
-            }
-            catch (TException ex)
-            {
-                return new Assertions<TException>(ex, a.SubjectExpression);
-            }
-            catch (Exception ex)
-            {
-                Fail.With(MessageBuilder.Expected(a.SubjectExpression, $"to throw {typeof(TException).Name}", ex.GetType().Name));
-            }
-
-            Fail.With(MessageBuilder.Expected(a.SubjectExpression, $"to throw {typeof(TException).Name}", "no exception"));
-            return default; // unreachable
-        }
-
-        public Assertions<Action> NotThrow()
-        {
-            try
-            {
-                a.Subject();
-            }
-            catch (Exception ex)
-            {
-                Fail.With(MessageBuilder.Expected(a.SubjectExpression, "not to throw", ex.GetType().Name));
-            }
-            return a;
-        }
-    }
-
     extension(Assertions<Func<Task>> a)
     {
         public async Task<Assertions<TException>> ThrowAsync<TException>() where TException : Exception

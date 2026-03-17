@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace ToolBX.AssertBox.Assertions;
 
 public static class CollectionAssertions
@@ -88,6 +90,15 @@ public static class CollectionAssertions
         return a;
     }
 
+    public static Assertions<TCollection> AllSatisfy<TCollection, TElement>(
+        this Assertions<TCollection> a, Action<TElement> inspector)
+        where TCollection : IEnumerable<TElement>
+    {
+        foreach (var item in a.Subject)
+            inspector(item);
+        return a;
+    }
+
     public static Assertions<TCollection> OnlyContain<TCollection, TElement>(
         this Assertions<TCollection> a, Func<TElement, bool> predicate)
         where TCollection : IEnumerable<TElement>
@@ -102,10 +113,37 @@ public static class CollectionAssertions
         this Assertions<TCollection> a, IEnumerable<TElement> expected)
         where TCollection : IEnumerable<TElement>
     {
-        var subjectList = a.Subject.OrderBy(x => x).ToList();
-        var expectedList = expected.OrderBy(x => x).ToList();
+        var subjectList = a.Subject.ToList();
+        var expectedList = expected.ToList();
+
+        var comparer = EqualityComparer<TElement>.Default;
+        var matched = new bool[expectedList.Count];
+        var areEquivalent = subjectList.Count == expectedList.Count;
+
+        if (areEquivalent)
+        {
+            foreach (var item in subjectList)
+            {
+                var found = false;
+                for (var i = 0; i < expectedList.Count; i++)
+                {
+                    if (!matched[i] && comparer.Equals(item, expectedList[i]))
+                    {
+                        matched[i] = true;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    areEquivalent = false;
+                    break;
+                }
+            }
+        }
+
         Fail.When(
-            !subjectList.SequenceEqual(expectedList),
+            !areEquivalent,
             () => MessageBuilder.Expected(a.SubjectExpression, $"to be equivalent to {MessageBuilder.Format(expected)}", a.Subject));
         return a;
     }
@@ -186,6 +224,13 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
             return a;
         }
+
+        public Assertions<TElement[]> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
+            return a;
+        }
     }
 
     extension<TElement>(Assertions<List<TElement>> a)
@@ -211,6 +256,13 @@ public static class CollectionAssertions
             Fail.When(
                 !a.Subject.All(predicate),
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<List<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
             return a;
         }
     }
@@ -240,6 +292,13 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
             return a;
         }
+
+        public Assertions<IEnumerable<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
+            return a;
+        }
     }
 
     extension<TElement>(Assertions<IList<TElement>> a)
@@ -265,6 +324,13 @@ public static class CollectionAssertions
             Fail.When(
                 !a.Subject.All(predicate),
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IList<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
             return a;
         }
     }
@@ -294,6 +360,13 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
             return a;
         }
+
+        public Assertions<ICollection<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
+            return a;
+        }
     }
 
     extension<TElement>(Assertions<IReadOnlyList<TElement>> a)
@@ -319,6 +392,13 @@ public static class CollectionAssertions
             Fail.When(
                 !a.Subject.All(predicate),
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<IReadOnlyList<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
             return a;
         }
     }
@@ -348,6 +428,13 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
             return a;
         }
+
+        public Assertions<IReadOnlyCollection<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
+            return a;
+        }
     }
 
     extension<TElement>(Assertions<HashSet<TElement>> a)
@@ -373,6 +460,47 @@ public static class CollectionAssertions
             Fail.When(
                 !a.Subject.All(predicate),
                 MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<HashSet<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
+            return a;
+        }
+    }
+
+    extension<TElement>(Assertions<ImmutableList<TElement>> a)
+    {
+        public Assertions<ImmutableList<TElement>> Contain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<ImmutableList<TElement>> AllSatisfy(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "all elements to satisfy the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<ImmutableList<TElement>> OnlyContain(Func<TElement, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.All(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to only contain elements matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<ImmutableList<TElement>> AllSatisfy(Action<TElement> inspector)
+        {
+            foreach (var item in a.Subject)
+                inspector(item);
             return a;
         }
     }

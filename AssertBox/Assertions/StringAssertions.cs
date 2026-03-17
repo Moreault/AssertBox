@@ -91,5 +91,21 @@ public static class StringAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "not to be null or empty", a.Subject));
             return a;
         }
+
+        public Assertions<string> BeNullOrWhiteSpace()
+        {
+            Fail.When(
+                !string.IsNullOrWhiteSpace(a.Subject),
+                MessageBuilder.Expected(a.SubjectExpression, "to be null or whitespace", a.Subject));
+            return a;
+        }
+
+        public Assertions<string> NotBeNullOrWhiteSpace()
+        {
+            Fail.When(
+                string.IsNullOrWhiteSpace(a.Subject),
+                MessageBuilder.Expected(a.SubjectExpression, "not to be null or whitespace", a.Subject));
+            return a;
+        }
     }
 }
