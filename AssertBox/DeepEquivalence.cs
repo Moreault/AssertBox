@@ -26,7 +26,7 @@ internal static class DeepEquivalence
         var leftType = left.GetType();
         var rightType = right.GetType();
 
-        if (leftType != rightType)
+        if (leftType != rightType && !(left is IEnumerable && right is IEnumerable))
         {
             difference = string.IsNullOrEmpty(path) ? "<root>" : path;
             return false;

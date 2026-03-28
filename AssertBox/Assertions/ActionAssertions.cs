@@ -42,9 +42,10 @@ public static class ActionAssertions
     {
         public Assertions<TException> WithMessage(string expected)
         {
+            var matches = MatchesWildcard(a.Subject.Message, expected);
             Fail.When(
-                !a.Subject.Message.Contains(expected, StringComparison.Ordinal),
-                MessageBuilder.Expected(a.SubjectExpression, $"exception message to contain {MessageBuilder.Format(expected)}", a.Subject.Message));
+                !matches,
+                MessageBuilder.Expected(a.SubjectExpression, $"exception message to match {MessageBuilder.Format(expected)}", a.Subject.Message));
             return a;
         }
 
@@ -66,5 +67,14 @@ public static class ActionAssertions
                 () => MessageBuilder.Expected(a.SubjectExpression, $"exception parameter name to be {MessageBuilder.Format(expected)}", a.Subject.ParamName));
             return a;
         }
+    }
+
+    private static bool MatchesWildcard(string actual, string pattern)
+    {
+        if (!pattern.Contains('*'))
+            return actual.Contains(pattern, StringComparison.Ordinal);
+
+        var regexPattern = "^" + System.Text.RegularExpressions.Regex.Escape(pattern).Replace("\\*", ".*") + "$";
+        return System.Text.RegularExpressions.Regex.IsMatch(actual, regexPattern, System.Text.RegularExpressions.RegexOptions.Singleline);
     }
 }
