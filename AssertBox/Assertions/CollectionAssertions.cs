@@ -48,6 +48,25 @@ public static class CollectionAssertions
                 MessageBuilder.Expected(a.SubjectExpression, $"to have count less than {expected}", actual));
             return a;
         }
+
+        public Assertions<T> OnlyHaveUniqueItems()
+        {
+            var seen = new HashSet<object?>();
+            var hasDuplicate = false;
+            foreach (var item in a.Subject)
+            {
+                if (!seen.Add(item))
+                {
+                    hasDuplicate = true;
+                    break;
+                }
+            }
+
+            Fail.When(
+                hasDuplicate,
+                () => MessageBuilder.Expected(a.SubjectExpression, "to only have unique items", a.Subject));
+            return a;
+        }
     }
 
     public static Assertions<TCollection> Contain<TCollection, TElement>(
@@ -197,6 +216,44 @@ public static class CollectionAssertions
             idx != expected.Length,
             () => MessageBuilder.Expected(a.SubjectExpression, $"to contain {MessageBuilder.Format(expected)} in order", a.Subject));
         return a;
+    }
+
+    public static Assertions<TCollection> ContainInOrder<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> expected)
+        where TCollection : IEnumerable<TElement>
+    {
+        var expectedList = expected as IReadOnlyList<TElement> ?? expected.ToList();
+        Fail.When(
+            !ContainsInOrder(a.Subject, expectedList),
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to contain {MessageBuilder.Format(expectedList)} in order", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> NotContainInOrder<TCollection, TElement>(
+        this Assertions<TCollection> a, params TElement[] unexpected)
+        where TCollection : IEnumerable<TElement>
+        => a.NotContainInOrder((IEnumerable<TElement>)unexpected);
+
+    public static Assertions<TCollection> NotContainInOrder<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> unexpected)
+        where TCollection : IEnumerable<TElement>
+    {
+        var unexpectedList = unexpected as IReadOnlyList<TElement> ?? unexpected.ToList();
+        Fail.When(
+            unexpectedList.Count > 0 && ContainsInOrder(a.Subject, unexpectedList),
+            () => MessageBuilder.Expected(a.SubjectExpression, $"not to contain {MessageBuilder.Format(unexpectedList)} in order", a.Subject));
+        return a;
+    }
+
+    private static bool ContainsInOrder<TElement>(IEnumerable<TElement> subject, IReadOnlyList<TElement> expected)
+    {
+        var idx = 0;
+        foreach (var item in subject)
+        {
+            if (idx < expected.Count && EqualityComparer<TElement>.Default.Equals(item, expected[idx]))
+                idx++;
+        }
+        return idx == expected.Count;
     }
 
     public static Assertions<TCollection> BeInAscendingOrder<TCollection, TElement>(this Assertions<TCollection> a)
@@ -538,6 +595,84 @@ public static class CollectionAssertions
                 inspector(item);
             return a;
         }
+    }
+
+    extension<TElement>(Assertions<TElement[]> a)
+    {
+        public Assertions<TElement[]> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<List<TElement>> a)
+    {
+        public Assertions<List<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<IEnumerable<TElement>> a)
+    {
+        public Assertions<IEnumerable<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<IList<TElement>> a)
+    {
+        public Assertions<IList<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<ICollection<TElement>> a)
+    {
+        public Assertions<ICollection<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<IReadOnlyList<TElement>> a)
+    {
+        public Assertions<IReadOnlyList<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<IReadOnlyCollection<TElement>> a)
+    {
+        public Assertions<IReadOnlyCollection<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<HashSet<TElement>> a)
+    {
+        public Assertions<HashSet<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TElement>(Assertions<ImmutableList<TElement>> a)
+    {
+        public Assertions<ImmutableList<TElement>> NotContain(Func<TElement, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    extension<TKey, TValue>(Assertions<Dictionary<TKey, TValue>> a) where TKey : notnull
+    {
+        public Assertions<Dictionary<TKey, TValue>> Contain(Func<KeyValuePair<TKey, TValue>, bool> predicate)
+        {
+            Fail.When(
+                !a.Subject.Any(predicate),
+                MessageBuilder.Expected(a.SubjectExpression, "to contain an element matching the predicate", a.Subject));
+            return a;
+        }
+
+        public Assertions<Dictionary<TKey, TValue>> NotContain(Func<KeyValuePair<TKey, TValue>, bool> predicate)
+            => NotContainMatching(a, predicate);
+    }
+
+    private static Assertions<TCollection> NotContainMatching<TCollection, TElement>(
+        Assertions<TCollection> a, Func<TElement, bool> predicate)
+        where TCollection : IEnumerable<TElement>
+    {
+        Fail.When(
+            a.Subject.Any(predicate),
+            MessageBuilder.Expected(a.SubjectExpression, "not to contain an element matching the predicate", a.Subject));
+        return a;
     }
 
     private static List<object?> ToObjectList(IEnumerable source)
