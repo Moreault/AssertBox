@@ -71,6 +71,42 @@ public static class CollectionAssertions
     }
 
     public static Assertions<TCollection> Contain<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> expected)
+        where TCollection : IEnumerable
+    {
+        var subjectList = ToObjectList(a.Subject);
+        var missing = new List<object?>();
+        foreach (var item in expected)
+        {
+            if (!subjectList.Any(s => AreEqual(s, item)))
+                missing.Add(item);
+        }
+
+        Fail.When(
+            missing.Count > 0,
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to contain {MessageBuilder.Format(expected)}", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> NotContain<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> unexpected)
+        where TCollection : IEnumerable
+    {
+        var subjectList = ToObjectList(a.Subject);
+        var present = new List<object?>();
+        foreach (var item in unexpected)
+        {
+            if (subjectList.Any(s => AreEqual(s, item)))
+                present.Add(item);
+        }
+
+        Fail.When(
+            present.Count > 0,
+            () => MessageBuilder.Expected(a.SubjectExpression, $"not to contain {MessageBuilder.Format(unexpected)}", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> Contain<TCollection, TElement>(
         this Assertions<TCollection> a, Func<TElement, bool> predicate)
         where TCollection : IEnumerable<TElement>
     {
@@ -111,12 +147,11 @@ public static class CollectionAssertions
 
     public static Assertions<TCollection> BeEquivalentTo<TCollection, TElement>(
         this Assertions<TCollection> a, IEnumerable<TElement> expected)
-        where TCollection : IEnumerable<TElement>
+        where TCollection : IEnumerable
     {
-        var subjectList = a.Subject.ToList();
-        var expectedList = expected.ToList();
+        var subjectList = ToObjectList(a.Subject);
+        var expectedList = ToObjectList(expected);
 
-        var comparer = EqualityComparer<TElement>.Default;
         var matched = new bool[expectedList.Count];
         var areEquivalent = subjectList.Count == expectedList.Count;
 
@@ -127,7 +162,7 @@ public static class CollectionAssertions
                 var found = false;
                 for (var i = 0; i < expectedList.Count; i++)
                 {
-                    if (!matched[i] && comparer.Equals(item, expectedList[i]))
+                    if (!matched[i] && ElementsEqual(item, expectedList[i]))
                     {
                         matched[i] = true;
                         found = true;
@@ -504,6 +539,26 @@ public static class CollectionAssertions
             return a;
         }
     }
+
+    private static List<object?> ToObjectList(IEnumerable source)
+    {
+        var list = new List<object?>();
+        foreach (var item in source)
+            list.Add(item);
+        return list;
+    }
+
+    private static bool AreEqual(object? subject, object? expected)
+    {
+        if (ReferenceEquals(subject, expected))
+            return true;
+        if (subject is null || expected is null)
+            return false;
+        return subject.Equals(expected) || expected.Equals(subject);
+    }
+
+    private static bool ElementsEqual(object? subject, object? expected) =>
+        AreEqual(subject, expected) || DeepEquivalence.AreEquivalent(subject, expected, out _);
 
     private static bool HasAny(IEnumerable source)
     {

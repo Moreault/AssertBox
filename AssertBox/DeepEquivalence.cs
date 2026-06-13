@@ -93,8 +93,19 @@ internal static class DeepEquivalence
             if (prop.GetIndexParameters().Length > 0)
                 continue;
 
-            var leftValue = prop.GetValue(left);
-            var rightValue = prop.GetValue(right);
+            object? leftValue;
+            object? rightValue;
+            try
+            {
+                leftValue = prop.GetValue(left);
+                rightValue = prop.GetValue(right);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+            {
+                difference = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
+                return false;
+            }
+
             var propertyPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
 
             if (!AreEquivalent(leftValue, rightValue, out difference, propertyPath, visited))

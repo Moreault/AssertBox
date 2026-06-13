@@ -200,4 +200,110 @@ public class CollectionAssertionTests
         });
         abc.Should().OnlyContain(x => x == (Id: 44, Name: "Roger"));
     }
+
+    [TestMethod]
+    public void Contain_WithCollectionAllPresent_ShouldPass()
+    {
+        new[] { 1, 2, 3, 4 }.Should().Contain(new List<int> { 2, 4 });
+    }
+
+    [TestMethod]
+    public void Contain_WithCollectionSomeMissing_ShouldFail()
+    {
+        Action act = () => new[] { 1, 2, 3 }.Should().Contain(new List<int> { 2, 99 });
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void Contain_WithProjectedEnumerableAndCollection_ShouldPass()
+    {
+        IEnumerable<string> names = new[] { "a", "b", "c" }.Select(x => x);
+        names.Should().Contain(new List<string> { "a", "c" });
+    }
+
+    [TestMethod]
+    public void NotContain_WithCollectionNonePresent_ShouldPass()
+    {
+        new[] { 1, 2, 3 }.Should().NotContain(new List<int> { 7, 8 });
+    }
+
+    [TestMethod]
+    public void NotContain_WithCollectionSomePresent_ShouldFail()
+    {
+        Action act = () => new[] { 1, 2, 3 }.Should().NotContain(new List<int> { 3, 8 });
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void Contain_WithSingleStringElement_ShouldResolveToElementOverload()
+    {
+        new List<string> { "ab", "cd" }.Should().Contain("ab");
+    }
+
+    [TestMethod]
+    public void Contain_WithSingleStringElementMissing_ShouldFail()
+    {
+        Action act = () => new List<string> { "ab", "cd" }.Should().Contain("zz");
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void Contain_WithTypeCollection_ShouldPass()
+    {
+        new List<Type> { typeof(int), typeof(string), typeof(bool) }
+            .Should().Contain(new List<Type> { typeof(string), typeof(bool) });
+    }
+
+    [TestMethod]
+    public void NotContain_WithTypeCollection_ShouldPass()
+    {
+        new List<Type> { typeof(int), typeof(string) }
+            .Should().NotContain(new List<Type> { typeof(bool), typeof(decimal) });
+    }
+
+    private sealed class Wrapper(int value)
+    {
+        public int Value { get; } = value;
+
+        public override bool Equals(object? obj) => obj switch
+        {
+            Wrapper w => w.Value == Value,
+            int i => i == Value,
+            _ => false
+        };
+
+        public override int GetHashCode() => Value.GetHashCode();
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_WithDifferentElementTypesMatchedByEquals_ShouldPass()
+    {
+        IReadOnlyList<Wrapper> subject = new List<Wrapper> { new(1), new(2), new(3) };
+        IEnumerable<int> expected = new List<int> { 3, 2, 1 };
+        subject.Should().BeEquivalentTo(expected);
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_WithDifferentElementTypesNotMatching_ShouldFail()
+    {
+        IReadOnlyList<Wrapper> subject = new List<Wrapper> { new(1), new(2) };
+        IEnumerable<int> expected = new List<int> { 1, 9 };
+        Action act = () => subject.Should().BeEquivalentTo(expected);
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    private sealed class ThrowingGetter
+    {
+        public int Safe { get; init; }
+        public int Boom => throw new InvalidOperationException("getter blew up");
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_WithThrowingPropertyGetter_ShouldFailGracefully()
+    {
+        var subject = new[] { new ThrowingGetter { Safe = 1 } };
+        var expected = new List<ThrowingGetter> { new() { Safe = 1 } };
+        Action act = () => subject.Should().BeEquivalentTo(expected);
+        act.Should().Throw<AssertBoxException>();
+    }
 }
