@@ -89,7 +89,6 @@ public static class TimeOnlyAssertions
 
     private static TimeSpan AbsDifference(TimeOnly a, TimeOnly b)
     {
-        var diff = a - b;
-        return diff < TimeSpan.Zero ? diff.Negate() : diff;
+        return TimeSpan.FromTicks(Math.Abs(a.Ticks - b.Ticks));
     }
 }

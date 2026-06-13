@@ -295,14 +295,24 @@ public class CollectionAssertionTests
     private sealed class ThrowingGetter
     {
         public int Safe { get; init; }
-        public int Boom => throw new InvalidOperationException("getter blew up");
+        public bool Explode { get; init; }
+        public int Boom => Explode ? throw new InvalidOperationException("getter blew up") : 0;
     }
 
     [TestMethod]
-    public void BeEquivalentTo_WithThrowingPropertyGetter_ShouldFailGracefully()
+    public void BeEquivalentTo_WhenPropertyGetterThrowsTheSameWayOnBothSides_ShouldTreatAsEquivalent()
     {
-        var subject = new[] { new ThrowingGetter { Safe = 1 } };
-        var expected = new List<ThrowingGetter> { new() { Safe = 1 } };
+        var subject = new[] { new ThrowingGetter { Safe = 1, Explode = true } };
+        var expected = new List<ThrowingGetter> { new() { Safe = 1, Explode = true } };
+        Action act = () => subject.Should().BeEquivalentTo(expected);
+        act.Should().NotThrow();
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_WhenPropertyGetterThrowsOnOnlyOneSide_ShouldFail()
+    {
+        var subject = new[] { new ThrowingGetter { Safe = 1, Explode = true } };
+        var expected = new List<ThrowingGetter> { new() { Safe = 1, Explode = false } };
         Action act = () => subject.Should().BeEquivalentTo(expected);
         act.Should().Throw<AssertBoxException>();
     }

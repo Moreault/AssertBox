@@ -93,26 +93,50 @@ internal static class DeepEquivalence
             if (prop.GetIndexParameters().Length > 0)
                 continue;
 
+            var propertyPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
+
             object? leftValue;
             object? rightValue;
             try
             {
                 leftValue = prop.GetValue(left);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+            {
+                if (Throws(prop, right, ex.GetType()))
+                    continue;
+                difference = propertyPath;
+                return false;
+            }
+
+            try
+            {
                 rightValue = prop.GetValue(right);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
             {
-                difference = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
+                difference = propertyPath;
                 return false;
             }
-
-            var propertyPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
 
             if (!AreEquivalent(leftValue, rightValue, out difference, propertyPath, visited))
                 return false;
         }
 
         return true;
+    }
+
+    private static bool Throws(PropertyInfo prop, object target, Type exceptionType)
+    {
+        try
+        {
+            prop.GetValue(target);
+            return false;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        {
+            return ex.GetType() == exceptionType;
+        }
     }
 
     private static PropertyInfo[] GetPublicProperties(
