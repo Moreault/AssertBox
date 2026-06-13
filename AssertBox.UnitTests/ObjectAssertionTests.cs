@@ -1,5 +1,6 @@
 namespace AssertBox.UnitTests;
 
+public record Box<T>(T Value);
 public record Address(string Street, string City);
 public record Person(string Name, int Age, Address? Address = null, List<string>? Tags = null);
 public class Node
@@ -177,14 +178,14 @@ public class ObjectAssertionTests
     [TestMethod]
     public void BeEquivalentTo_BothNull_ShouldPass()
     {
-        ((Person?)null).Should().BeEquivalentTo(null);
+        ((Person?)null).Should().BeEquivalentTo((Person?)null);
     }
 
     [TestMethod]
     public void BeEquivalentTo_OneNull_ShouldFail()
     {
         var a = new Person("Alice", 30);
-        Action act = () => a.Should().BeEquivalentTo(null!);
+        Action act = () => a.Should().BeEquivalentTo((Person?)null);
         act.Should().Throw<AssertBoxException>();
     }
 
@@ -241,6 +242,25 @@ public class ObjectAssertionTests
         var a = new Person("Alice", 30, Address: null);
         var b = new Person("Alice", 30, Address: null);
         a.Should().BeEquivalentTo(b);
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_NumericValuesOfDifferentTypes_ShouldPass()
+    {
+        11.Should().BeEquivalentTo(11L);
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_SubjectAndExpectationDifferentGenericInstantiations_ShouldPass()
+    {
+        new Box<int>(11).Should().BeEquivalentTo(new Box<long>(11));
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_DifferentGenericInstantiationsWithDifferentValues_ShouldFail()
+    {
+        Action act = () => new Box<int>(11).Should().BeEquivalentTo(new Box<long>(12));
+        act.Should().Throw<AssertBoxException>();
     }
 
     [TestMethod]

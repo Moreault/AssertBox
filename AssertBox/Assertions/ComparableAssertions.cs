@@ -36,6 +36,10 @@ public static class ComparableAssertions
             return a;
         }
 
+        public Assertions<T> BeGreaterOrEqualTo(T expected) => a.BeGreaterThanOrEqualTo(expected);
+
+        public Assertions<T> BeLessOrEqualTo(T expected) => a.BeLessThanOrEqualTo(expected);
+
         public Assertions<T> BeInRange(T min, T max)
         {
             Fail.When(

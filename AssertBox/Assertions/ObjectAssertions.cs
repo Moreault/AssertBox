@@ -51,6 +51,24 @@ public static class ObjectAssertions
                 MessageBuilder.Expected(a.SubjectExpression, $"to be one of {MessageBuilder.Format(expected)}", a.Subject));
             return a;
         }
+
+        public Assertions<T> BeEquivalentTo<TExpected>(TExpected expected)
+        {
+            DeepEquivalence.AreEquivalent(a.Subject, expected, out var difference);
+            Fail.When(
+                difference is not null,
+                () => MessageBuilder.Expected(a.SubjectExpression, $"to be equivalent to {MessageBuilder.Format(expected)} but found a difference at '{difference}'", MessageBuilder.OmitActual));
+            return a;
+        }
+
+        public Assertions<T> NotBeEquivalentTo<TExpected>(TExpected expected)
+        {
+            DeepEquivalence.AreEquivalent(a.Subject, expected, out var difference);
+            Fail.When(
+                difference is null,
+                MessageBuilder.Expected(a.SubjectExpression, "not to be equivalent to the given value", MessageBuilder.OmitActual));
+            return a;
+        }
     }
 
     extension(Assertions<uint> a)
@@ -108,24 +126,6 @@ public static class ObjectAssertions
                 MessageBuilder.Expected(a.SubjectExpression, "not to be the same reference", MessageBuilder.OmitActual));
             return a;
         }
-    }
-
-    public static Assertions<T> BeEquivalentTo<T>(this Assertions<T> a, T expected)
-    {
-        DeepEquivalence.AreEquivalent(a.Subject, expected, out var difference);
-        Fail.When(
-            difference is not null,
-            () => MessageBuilder.Expected(a.SubjectExpression, $"to be equivalent to {MessageBuilder.Format(expected)} but found a difference at '{difference}'", MessageBuilder.OmitActual));
-        return a;
-    }
-
-    public static Assertions<T> NotBeEquivalentTo<T>(this Assertions<T> a, T expected)
-    {
-        DeepEquivalence.AreEquivalent(a.Subject, expected, out var difference);
-        Fail.When(
-            difference is null,
-            MessageBuilder.Expected(a.SubjectExpression, "not to be equivalent to the given value", MessageBuilder.OmitActual));
-        return a;
     }
 
     private static bool Equals<T>(T? left, T? right) =>

@@ -26,17 +26,26 @@ internal static class DeepEquivalence
         var leftType = left.GetType();
         var rightType = right.GetType();
 
-        if (leftType != rightType && !(left is IEnumerable && right is IEnumerable))
+        if (IsNumeric(leftType) && IsNumeric(rightType))
         {
+            if (NumericEquals(left, right))
+                return true;
+
             difference = string.IsNullOrEmpty(path) ? "<root>" : path;
             return false;
         }
 
-        if (leftType.IsPrimitive || left is string || left is decimal || left is DateTime || left is DateTimeOffset || left is Guid || left is TimeSpan || leftType.IsEnum)
+        if (IsSimple(leftType) || IsSimple(rightType))
         {
-            if (left.Equals(right))
+            if (leftType == rightType && left.Equals(right))
                 return true;
 
+            difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+            return false;
+        }
+
+        if (left is IEnumerable != right is IEnumerable)
+        {
             difference = string.IsNullOrEmpty(path) ? "<root>" : path;
             return false;
         }
@@ -87,6 +96,8 @@ internal static class DeepEquivalence
             return true;
         }
 
+        var sameType = leftType == rightType;
+        var rightProperties = sameType ? null : GetPublicProperties(rightType).ToDictionary(p => p.Name);
         var properties = GetPublicProperties(leftType);
         foreach (var prop in properties)
         {
@@ -94,6 +105,17 @@ internal static class DeepEquivalence
                 continue;
 
             var propertyPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
+
+            PropertyInfo rightProp;
+            if (sameType)
+            {
+                rightProp = prop;
+            }
+            else if (!rightProperties!.TryGetValue(prop.Name, out rightProp!))
+            {
+                difference = propertyPath;
+                return false;
+            }
 
             object? leftValue;
             object? rightValue;
@@ -103,7 +125,7 @@ internal static class DeepEquivalence
             }
             catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
             {
-                if (Throws(prop, right, ex.GetType()))
+                if (Throws(rightProp, right, ex.GetType()))
                     continue;
                 difference = propertyPath;
                 return false;
@@ -111,7 +133,7 @@ internal static class DeepEquivalence
 
             try
             {
-                rightValue = prop.GetValue(right);
+                rightValue = rightProp.GetValue(right);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
             {
@@ -124,6 +146,36 @@ internal static class DeepEquivalence
         }
 
         return true;
+    }
+
+    private static bool IsNumeric(Type type) =>
+        type == typeof(byte) || type == typeof(sbyte) ||
+        type == typeof(short) || type == typeof(ushort) ||
+        type == typeof(int) || type == typeof(uint) ||
+        type == typeof(long) || type == typeof(ulong) ||
+        type == typeof(nint) || type == typeof(nuint) ||
+        type == typeof(float) || type == typeof(double) || type == typeof(decimal);
+
+    private static bool IsSimple(Type type) =>
+        type.IsPrimitive || type.IsEnum ||
+        type == typeof(string) || type == typeof(decimal) ||
+        type == typeof(DateTime) || type == typeof(DateTimeOffset) ||
+        type == typeof(DateOnly) || type == typeof(TimeOnly) ||
+        type == typeof(Guid) || type == typeof(TimeSpan);
+
+    private static bool NumericEquals(object left, object right)
+    {
+        if (left is float or double || right is float or double)
+            return Convert.ToDouble(left, CultureInfo.InvariantCulture).Equals(Convert.ToDouble(right, CultureInfo.InvariantCulture));
+
+        try
+        {
+            return Convert.ToDecimal(left, CultureInfo.InvariantCulture) == Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+        }
+        catch (OverflowException)
+        {
+            return false;
+        }
     }
 
     private static bool Throws(PropertyInfo prop, object target, Type exceptionType)

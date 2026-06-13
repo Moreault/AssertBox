@@ -42,6 +42,32 @@ public class ComparableAssertionTests
     }
 
     [TestMethod]
+    public void BeGreaterOrEqualTo_WithEqualValue_ShouldPass()
+    {
+        5.Should().BeGreaterOrEqualTo(5);
+    }
+
+    [TestMethod]
+    public void BeGreaterOrEqualTo_WithLesserValue_ShouldFail()
+    {
+        Action act = () => 4.Should().BeGreaterOrEqualTo(5);
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
+    public void BeLessOrEqualTo_WithEqualValue_ShouldPass()
+    {
+        5.Should().BeLessOrEqualTo(5);
+    }
+
+    [TestMethod]
+    public void BeLessOrEqualTo_WithGreaterValue_ShouldFail()
+    {
+        Action act = () => 6.Should().BeLessOrEqualTo(5);
+        act.Should().Throw<AssertBoxException>();
+    }
+
+    [TestMethod]
     public void BeInRange_WithValueInRange_ShouldPass()
     {
         5.Should().BeInRange(1, 10);
