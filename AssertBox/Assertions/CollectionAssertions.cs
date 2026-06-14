@@ -207,6 +207,26 @@ public static class CollectionAssertions
         return a;
     }
 
+    public static Assertions<TCollection> ContainEquivalentOf<TCollection, TElement>(
+        this Assertions<TCollection> a, TElement expected)
+        where TCollection : IEnumerable
+    {
+        var found = false;
+        foreach (var item in a.Subject)
+        {
+            if (DeepEquivalence.AreEquivalent(item, expected, out _))
+            {
+                found = true;
+                break;
+            }
+        }
+
+        Fail.When(
+            !found,
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to contain an element equivalent to {MessageBuilder.Format(expected)}", a.Subject));
+        return a;
+    }
+
     public static Assertions<TCollection> ContainInOrder<TCollection, TElement>(
         this Assertions<TCollection> a, params TElement[] expected)
         where TCollection : IEnumerable<TElement>
