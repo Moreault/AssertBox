@@ -11,7 +11,7 @@
 		<RepositoryType>git</RepositoryType>
 		<Authors>Mathieu Moreault</Authors>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>4.0.0-beta.8</Version>
+		<Version>4.0.0-beta.9</Version>
 		<Description>A simple and lightweight assertion library for .NET.</Description>
 		<PackageProjectUrl>https://github.com/Moreault/AssertBox</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

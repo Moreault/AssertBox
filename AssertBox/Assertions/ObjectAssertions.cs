@@ -111,7 +111,7 @@ public static class ObjectAssertions
 
     extension<T>(Assertions<T> a) where T : class?
     {
-        public Assertions<T> BeSameAs(T expected)
+        public Assertions<T> BeSameAs(object? expected)
         {
             Fail.When(
                 !ReferenceEquals(a.Subject, expected),
@@ -119,7 +119,7 @@ public static class ObjectAssertions
             return a;
         }
 
-        public Assertions<T> NotBeSameAs(T expected)
+        public Assertions<T> NotBeSameAs(object? expected)
         {
             Fail.When(
                 ReferenceEquals(a.Subject, expected),

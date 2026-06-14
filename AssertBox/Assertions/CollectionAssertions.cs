@@ -135,6 +135,11 @@ public static class CollectionAssertions
         return a;
     }
 
+    public static Assertions<TCollection> NotContain<TCollection, TElement>(
+        this Assertions<TCollection> a, Func<TElement, bool> predicate)
+        where TCollection : IEnumerable<TElement>
+        => NotContainMatching(a, predicate);
+
     public static Assertions<TCollection> AllSatisfy<TCollection, TElement>(
         this Assertions<TCollection> a, Func<TElement, bool> predicate)
         where TCollection : IEnumerable<TElement>
