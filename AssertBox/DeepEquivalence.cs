@@ -1,8 +1,10 @@
 namespace ToolBX.AssertBox;
 
+internal sealed record Difference(string Path, object? Actual, object? Expected);
+
 internal static class DeepEquivalence
 {
-    public static bool AreEquivalent(object? left, object? right, out string? difference, string path = "")
+    public static bool AreEquivalent(object? left, object? right, out Difference? difference, string path = "")
     {
         var visited = new HashSet<(object, object)>(ReferenceEqualityComparer.Instance);
         return AreEquivalent(left, right, out difference, path, visited);
@@ -10,7 +12,7 @@ internal static class DeepEquivalence
 
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2072",
         Justification = "DeepEquivalence compares objects whose types are known at runtime.")]
-    private static bool AreEquivalent(object? left, object? right, out string? difference, string path, HashSet<(object, object)> visited)
+    private static bool AreEquivalent(object? left, object? right, out Difference? difference, string path, HashSet<(object, object)> visited)
     {
         difference = null;
 
@@ -19,7 +21,7 @@ internal static class DeepEquivalence
 
         if (left is null || right is null)
         {
-            difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+            difference = MakeDifference(path, left, right);
             return false;
         }
 
@@ -31,7 +33,7 @@ internal static class DeepEquivalence
             if (NumericEquals(left, right))
                 return true;
 
-            difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+            difference = MakeDifference(path, left, right);
             return false;
         }
 
@@ -40,13 +42,13 @@ internal static class DeepEquivalence
             if (leftType == rightType && left.Equals(right))
                 return true;
 
-            difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+            difference = MakeDifference(path, left, right);
             return false;
         }
 
         if (left is IEnumerable != right is IEnumerable)
         {
-            difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+            difference = MakeDifference(path, left, right);
             return false;
         }
 
@@ -65,7 +67,7 @@ internal static class DeepEquivalence
 
             if (leftList.Count != rightList.Count)
             {
-                difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+                difference = MakeDifference(path, left, right);
                 return false;
             }
 
@@ -88,7 +90,7 @@ internal static class DeepEquivalence
 
                 if (!found)
                 {
-                    difference = string.IsNullOrEmpty(path) ? "<root>" : path;
+                    difference = MakeDifference(path, left, right);
                     return false;
                 }
             }
@@ -113,7 +115,7 @@ internal static class DeepEquivalence
             }
             else if (!rightProperties!.TryGetValue(prop.Name, out rightProp!))
             {
-                difference = propertyPath;
+                difference = new Difference(propertyPath, "<missing>", null);
                 return false;
             }
 
@@ -127,7 +129,7 @@ internal static class DeepEquivalence
             {
                 if (Throws(rightProp, right, ex.GetType()))
                     continue;
-                difference = propertyPath;
+                difference = new Difference(propertyPath, ex.GetType().Name, null);
                 return false;
             }
 
@@ -137,7 +139,7 @@ internal static class DeepEquivalence
             }
             catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
             {
-                difference = propertyPath;
+                difference = new Difference(propertyPath, null, ex.GetType().Name);
                 return false;
             }
 
@@ -147,6 +149,9 @@ internal static class DeepEquivalence
 
         return true;
     }
+
+    private static Difference MakeDifference(string path, object? actual, object? expected) =>
+        new(string.IsNullOrEmpty(path) ? "<root>" : path, actual, expected);
 
     private static bool IsNumeric(Type type) =>
         type == typeof(byte) || type == typeof(sbyte) ||

@@ -57,7 +57,7 @@ public static class ObjectAssertions
             DeepEquivalence.AreEquivalent(a.Subject, expected, out var difference);
             Fail.When(
                 difference is not null,
-                () => MessageBuilder.Expected(a.SubjectExpression, $"to be equivalent to {MessageBuilder.Format(expected)} but found a difference at '{difference}'", MessageBuilder.OmitActual));
+                () => MessageBuilder.Equivalence(a.SubjectExpression, expected, difference!));
             return a;
         }
 

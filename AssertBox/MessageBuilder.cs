@@ -18,6 +18,25 @@ public static class MessageBuilder
         return sb.ToString();
     }
 
+    internal static string Equivalence(string subjectExpression, object? expected, Difference difference)
+    {
+        var sb = new StringBuilder();
+        sb.Append("Expected ");
+        sb.Append(subjectExpression);
+        sb.Append(" to be equivalent to ");
+        sb.Append(Format(expected));
+        sb.Append(" but found a difference at '");
+        sb.Append(difference.Path);
+        sb.Append("'.");
+        sb.AppendLine();
+        sb.Append("  Expected: ");
+        sb.Append(Format(difference.Expected));
+        sb.AppendLine();
+        sb.Append("  Actual:   ");
+        sb.Append(Format(difference.Actual));
+        return sb.ToString();
+    }
+
     public static string Format(object? value) => value switch
     {
         null => "<null>",

@@ -335,4 +335,45 @@ public class DropInAdditionsTests
         Action assertion = () => act.Should().Throw<InvalidOperationException>().WithInnerExceptionExactly<InvalidOperationException, ArgumentException>();
         assertion.Should().Throw<AssertBoxException>();
     }
+
+    private sealed record Wrapper(int Id, string Name);
+
+    [TestMethod]
+    public void BeEquivalentTo_OnDifference_MessageShowsStackedExpectedAndActual()
+    {
+        var actual = new Wrapper(1, "Roger");
+        var expected = new Wrapper(2, "Roger");
+
+        var message = CaptureMessage(() => actual.Should().BeEquivalentTo(expected));
+
+        message.Should().Contain("difference at 'Id'");
+        message.Should().Contain("Expected: 2");
+        message.Should().Contain("Actual:   1");
+    }
+
+    [TestMethod]
+    public void BeEquivalentTo_OnNestedDifference_MessageReportsNestedPathAndValues()
+    {
+        var actual = new Wrapper(1, "Roger");
+        var expected = new Wrapper(1, "Bob");
+
+        var message = CaptureMessage(() => actual.Should().BeEquivalentTo(expected));
+
+        message.Should().Contain("difference at 'Name'");
+        message.Should().Contain("Expected: \"Bob\"");
+        message.Should().Contain("Actual:   \"Roger\"");
+    }
+
+    private static string CaptureMessage(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (AssertBoxException ex)
+        {
+            return ex.Message;
+        }
+        throw new InvalidOperationException("Expected an AssertBoxException but none was thrown.");
+    }
 }
