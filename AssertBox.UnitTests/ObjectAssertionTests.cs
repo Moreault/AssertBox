@@ -209,16 +209,16 @@ public class ObjectAssertionTests
     [TestMethod]
     public void BeEquivalentTo_WithCollectionProperties_Equivalent_ShouldPass()
     {
-        var a = new Person("Alice", 30, Tags: new List<string> { "a", "b" });
-        var b = new Person("Alice", 30, Tags: new List<string> { "b", "a" });
+        var a = new Person("Alice", 30, Tags: ["a", "b"]);
+        var b = new Person("Alice", 30, Tags: ["b", "a"]);
         a.Should().BeEquivalentTo(b);
     }
 
     [TestMethod]
     public void BeEquivalentTo_WithCollectionProperties_Different_ShouldFail()
     {
-        var a = new Person("Alice", 30, Tags: new List<string> { "a", "b" });
-        var b = new Person("Alice", 30, Tags: new List<string> { "a", "c" });
+        var a = new Person("Alice", 30, Tags: ["a", "b"]);
+        var b = new Person("Alice", 30, Tags: ["a", "c"]);
         Action act = () => a.Should().BeEquivalentTo(b);
         act.Should().Throw<AssertBoxException>();
     }

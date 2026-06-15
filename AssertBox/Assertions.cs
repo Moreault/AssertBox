@@ -4,6 +4,12 @@ namespace ToolBX.AssertBox;
 
 public readonly record struct Assertions<T>(T Subject, string SubjectExpression)
 {
+    /// <summary>
+    /// Returns the same assertion instance, allowing FluentAssertions-style chaining
+    /// such as <c>x.Should().NotBeNull().And.BeOfType&lt;Foo&gt;()</c>.
+    /// </summary>
+    public Assertions<T> And => this;
+
     public Assertions<TException> Throw<TException>() where TException : Exception
     {
         if (Subject is not Delegate d)
@@ -64,6 +70,26 @@ public readonly record struct Assertions<T>(T Subject, string SubjectExpression)
         return this;
     }
 
+    public Assertions<T> NotBeOfType<TExpected>()
+    {
+        var subject = Subject;
+        var expression = SubjectExpression;
+        Fail.When(
+            subject is not null && subject.GetType() == typeof(TExpected),
+            () => MessageBuilder.Expected(expression, $"not to be of type {typeof(TExpected).Name}", subject?.GetType().Name ?? "<null>"));
+        return this;
+    }
+
+    public Assertions<T> BeOfType(Type expectedType)
+    {
+        var subject = Subject;
+        var expression = SubjectExpression;
+        Fail.When(
+            subject is null || subject.GetType() != expectedType,
+            () => MessageBuilder.Expected(expression, $"to be of type {expectedType.Name}", subject?.GetType().Name ?? "<null>"));
+        return this;
+    }
+
     public Assertions<T> BeAssignableTo<TExpected>()
     {
         var subject = Subject;
@@ -71,6 +97,26 @@ public readonly record struct Assertions<T>(T Subject, string SubjectExpression)
         Fail.When(
             subject is not TExpected,
             () => MessageBuilder.Expected(expression, $"to be assignable to {typeof(TExpected).Name}", subject?.GetType().Name ?? "<null>"));
+        return this;
+    }
+
+    public Assertions<T> BeAssignableTo(Type expectedType)
+    {
+        var subject = Subject;
+        var expression = SubjectExpression;
+        Fail.When(
+            subject is null || !expectedType.IsInstanceOfType(subject),
+            () => MessageBuilder.Expected(expression, $"to be assignable to {expectedType.Name}", subject?.GetType().Name ?? "<null>"));
+        return this;
+    }
+
+    public Assertions<T> NotBeAssignableTo<TExpected>()
+    {
+        var subject = Subject;
+        var expression = SubjectExpression;
+        Fail.When(
+            subject is TExpected,
+            () => MessageBuilder.Expected(expression, $"not to be assignable to {typeof(TExpected).Name}", subject?.GetType().Name ?? "<null>"));
         return this;
     }
 }

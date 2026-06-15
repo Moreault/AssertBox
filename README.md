@@ -52,6 +52,11 @@ public void Test_Strings()
     result.Should().StartWith("Ro");
     result.Should().EndWith("er");
     result.Should().Match(@"\w+");
+    result.Should().NotMatch(@"^\d+$");
+    result.Should().NotStartWith("Bo");
+    result.Should().NotEndWith(" by");
+    result.Should().ContainAll("Ro", "ger");
+    result.Should().ContainAny("ger", "xyz");
     result.Should().HaveLength(5);
     result.Should().NotBeEmpty();
     result.Should().NotBeNullOrEmpty();
@@ -68,12 +73,26 @@ public void Test_Objects()
 
     result.Should().NotBeNull();
     result.Should().BeOfType<Person>();
+    result.Should().NotBeOfType<Animal>();
+    result.Should().BeOfType(typeof(Person));
     result.Should().BeAssignableTo<IEntity>();
+    result.Should().NotBeAssignableTo<IDisposable>();
     result.Should().Satisfy(x => x.Age > 18);
     result.Should().BeSameAs(result);
     result.Should().NotBeSameAs(new Person());
+    //FluentAssertions-style chaining with .And
+    result.Should().NotBeNull().And.BeOfType<Person>();
     //Deep structural comparison of all public properties
     result.Should().BeEquivalentTo(new Person { Name = "Roger", Age = 35 });
+}
+
+[TestMethod]
+public void Test_Nullables()
+{
+    int? result = Instance.GetOptionalNumber();
+
+    result.Should().HaveValue();
+    result.Should().NotHaveValue();
 }
 ```
 
@@ -102,11 +121,22 @@ public void Test_Collections()
     result.Should().HaveCount(3);
     result.Should().HaveCountGreaterThan(1);
     result.Should().HaveCountLessThan(10);
+    result.Should().HaveCountGreaterThanOrEqualTo(3);
+    result.Should().HaveCountLessThanOrEqualTo(3);
+    result.Should().NotHaveCount(2);
+    result.Should().HaveSameCount(new[] { "a", "b", "c" });
     result.Should().Contain("Roger");
     result.Should().NotContain("Seb");
     result.Should().Contain(x => x.StartsWith("R"));
+    result.Should().ContainSingle(x => x == "Roger");
+    result.Should().HaveElementAt(1, "Roger");
     result.Should().AllSatisfy(x => x.Length > 0);
+    //Strict, ordered equality
+    result.Should().Equal("Terry", "Roger", "Bob");
+    result.Should().NotEqual(new[] { "Bob", "Roger", "Terry" });
+    //Order-insensitive equality
     result.Should().BeEquivalentTo(new[] { "Terry", "Roger", "Bob" });
+    result.Should().BeSubsetOf(new[] { "Terry", "Roger", "Bob", "Seb" });
     result.Should().ContainInOrder("Roger", "Bob");
     result.Should().BeInAscendingOrder();
 }

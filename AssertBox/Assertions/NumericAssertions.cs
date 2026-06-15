@@ -36,5 +36,14 @@ public static class NumericAssertions
                 MessageBuilder.Expected(a.SubjectExpression, $"to be approximately {MessageBuilder.Format(expected)} +/- {MessageBuilder.Format(precision)}", a.Subject));
             return a;
         }
+
+        public Assertions<T> NotBeApproximately(T expected, T precision)
+        {
+            var diff = a.Subject > expected ? a.Subject - expected : expected - a.Subject;
+            Fail.When(
+                diff <= precision,
+                MessageBuilder.Expected(a.SubjectExpression, $"not to be approximately {MessageBuilder.Format(expected)} +/- {MessageBuilder.Format(precision)}", a.Subject));
+            return a;
+        }
     }
 }

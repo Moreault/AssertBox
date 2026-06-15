@@ -56,6 +56,22 @@ public static class ActionAssertions
                 () => MessageBuilder.Expected(a.SubjectExpression, $"to have inner exception of type {typeof(TInner).Name}", a.Subject.InnerException?.GetType().Name ?? "<null>"));
             return a;
         }
+
+        public Assertions<TException> WithInnerExceptionExactly<TInner>() where TInner : Exception
+        {
+            Fail.When(
+                a.Subject.InnerException is null || a.Subject.InnerException.GetType() != typeof(TInner),
+                () => MessageBuilder.Expected(a.SubjectExpression, $"to have inner exception of exactly type {typeof(TInner).Name}", a.Subject.InnerException?.GetType().Name ?? "<null>"));
+            return a;
+        }
+
+        public Assertions<TException> Where(Func<TException, bool> predicate)
+        {
+            Fail.When(
+                !predicate(a.Subject),
+                MessageBuilder.Expected(a.SubjectExpression, "exception to satisfy the given predicate", a.Subject.Message));
+            return a;
+        }
     }
 
     extension<TException>(Assertions<TException> a) where TException : ArgumentException

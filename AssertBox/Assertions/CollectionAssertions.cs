@@ -49,6 +49,62 @@ public static class CollectionAssertions
             return a;
         }
 
+        public Assertions<T> HaveCountGreaterThanOrEqualTo(int expected)
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual < expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to have count greater than or equal to {expected}", actual));
+            return a;
+        }
+
+        public Assertions<T> HaveCountLessThanOrEqualTo(int expected)
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual > expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to have count less than or equal to {expected}", actual));
+            return a;
+        }
+
+        public Assertions<T> NotHaveCount(int unexpected)
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual == unexpected,
+                MessageBuilder.Expected(a.SubjectExpression, $"not to have count {unexpected}", actual));
+            return a;
+        }
+
+        public Assertions<T> HaveSameCount(IEnumerable other)
+        {
+            var actual = Count(a.Subject);
+            var expected = Count(other);
+            Fail.When(
+                actual != expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"to have the same count as the other collection ({expected})", actual));
+            return a;
+        }
+
+        public Assertions<T> NotHaveSameCount(IEnumerable other)
+        {
+            var actual = Count(a.Subject);
+            var expected = Count(other);
+            Fail.When(
+                actual == expected,
+                MessageBuilder.Expected(a.SubjectExpression, $"not to have the same count as the other collection ({expected})", actual));
+            return a;
+        }
+
+        public Assertions<T> ContainSingle()
+        {
+            var actual = Count(a.Subject);
+            Fail.When(
+                actual != 1,
+                () => MessageBuilder.Expected(a.SubjectExpression, "to contain a single element", a.Subject));
+            return a;
+        }
+
         public Assertions<T> OnlyHaveUniqueItems()
         {
             var seen = new HashSet<object?>();
@@ -626,54 +682,81 @@ public static class CollectionAssertions
     {
         public Assertions<TElement[]> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<TElement[]> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<List<TElement>> a)
     {
         public Assertions<List<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<List<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<IEnumerable<TElement>> a)
     {
         public Assertions<IEnumerable<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<IEnumerable<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<IList<TElement>> a)
     {
         public Assertions<IList<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<IList<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<ICollection<TElement>> a)
     {
         public Assertions<ICollection<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<ICollection<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<IReadOnlyList<TElement>> a)
     {
         public Assertions<IReadOnlyList<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<IReadOnlyList<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<IReadOnlyCollection<TElement>> a)
     {
         public Assertions<IReadOnlyCollection<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<IReadOnlyCollection<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<HashSet<TElement>> a)
     {
         public Assertions<HashSet<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<HashSet<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TElement>(Assertions<ImmutableList<TElement>> a)
     {
         public Assertions<ImmutableList<TElement>> NotContain(Func<TElement, bool> predicate)
             => NotContainMatching(a, predicate);
+
+        public Assertions<ImmutableList<TElement>> ContainSingle(Func<TElement, bool> predicate)
+            => ContainSingleMatching(a, predicate);
     }
 
     extension<TKey, TValue>(Assertions<Dictionary<TKey, TValue>> a) where TKey : notnull
@@ -690,6 +773,88 @@ public static class CollectionAssertions
             => NotContainMatching(a, predicate);
     }
 
+    public static Assertions<TCollection> Equal<TCollection, TElement>(
+        this Assertions<TCollection> a, params TElement[] expected)
+        where TCollection : IEnumerable<TElement>
+        => a.Equal((IEnumerable<TElement>)expected);
+
+    public static Assertions<TCollection> Equal<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> expected)
+        where TCollection : IEnumerable<TElement>
+    {
+        var expectedList = expected as IReadOnlyList<TElement> ?? expected.ToList();
+        Fail.When(
+            !SequenceEqual(a.Subject, expectedList),
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to equal {MessageBuilder.Format(expectedList)}", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> NotEqual<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> unexpected)
+        where TCollection : IEnumerable<TElement>
+    {
+        var unexpectedList = unexpected as IReadOnlyList<TElement> ?? unexpected.ToList();
+        Fail.When(
+            SequenceEqual(a.Subject, unexpectedList),
+            () => MessageBuilder.Expected(a.SubjectExpression, $"not to equal {MessageBuilder.Format(unexpectedList)}", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> HaveElementAt<TCollection, TElement>(
+        this Assertions<TCollection> a, int index, TElement expected)
+        where TCollection : IEnumerable<TElement>
+    {
+        var list = a.Subject as IReadOnlyList<TElement> ?? a.Subject.ToList();
+        var inRange = index >= 0 && index < list.Count;
+        Fail.When(
+            !inRange || !EqualityComparer<TElement>.Default.Equals(list[index], expected),
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to have {MessageBuilder.Format(expected)} at index {index}", inRange ? list[index] : "<out of range>"));
+        return a;
+    }
+
+    public static Assertions<TCollection> BeSubsetOf<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> superset)
+        where TCollection : IEnumerable<TElement>
+    {
+        var supersetList = ToObjectList(superset);
+        var notInSuperset = new List<object?>();
+        foreach (var item in a.Subject)
+        {
+            if (!supersetList.Any(s => AreEqual(s, item)))
+                notInSuperset.Add(item);
+        }
+
+        Fail.When(
+            notInSuperset.Count > 0,
+            () => MessageBuilder.Expected(a.SubjectExpression, $"to be a subset of {MessageBuilder.Format(superset)}", a.Subject));
+        return a;
+    }
+
+    public static Assertions<TCollection> NotBeSubsetOf<TCollection, TElement>(
+        this Assertions<TCollection> a, IEnumerable<TElement> superset)
+        where TCollection : IEnumerable<TElement>
+    {
+        var supersetList = ToObjectList(superset);
+        var isSubset = a.Subject.All(item => supersetList.Any(s => AreEqual(s, item)));
+
+        Fail.When(
+            isSubset,
+            () => MessageBuilder.Expected(a.SubjectExpression, $"not to be a subset of {MessageBuilder.Format(superset)}", a.Subject));
+        return a;
+    }
+
+    private static bool SequenceEqual<TElement>(IEnumerable<TElement> subject, IReadOnlyList<TElement> expected)
+    {
+        var index = 0;
+        foreach (var item in subject)
+        {
+            if (index >= expected.Count || !EqualityComparer<TElement>.Default.Equals(item, expected[index]))
+                return false;
+            index++;
+        }
+        return index == expected.Count;
+    }
+
     private static Assertions<TCollection> NotContainMatching<TCollection, TElement>(
         Assertions<TCollection> a, Func<TElement, bool> predicate)
         where TCollection : IEnumerable<TElement>
@@ -697,6 +862,16 @@ public static class CollectionAssertions
         Fail.When(
             a.Subject.Any(predicate),
             MessageBuilder.Expected(a.SubjectExpression, "not to contain an element matching the predicate", a.Subject));
+        return a;
+    }
+
+    private static Assertions<TCollection> ContainSingleMatching<TCollection, TElement>(
+        Assertions<TCollection> a, Func<TElement, bool> predicate)
+        where TCollection : IEnumerable<TElement>
+    {
+        Fail.When(
+            a.Subject.Count(predicate) != 1,
+            () => MessageBuilder.Expected(a.SubjectExpression, "to contain a single element matching the predicate", a.Subject));
         return a;
     }
 

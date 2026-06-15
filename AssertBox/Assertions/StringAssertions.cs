@@ -28,6 +28,14 @@ public static class StringAssertions
             return a;
         }
 
+        public Assertions<string> NotStartWith(string expected)
+        {
+            Fail.When(
+                a.Subject.StartsWith(expected, StringComparison.Ordinal),
+                MessageBuilder.Expected(a.SubjectExpression, $"not to start with {MessageBuilder.Format(expected)}", a.Subject));
+            return a;
+        }
+
         public Assertions<string> EndWith(string expected)
         {
             Fail.When(
@@ -36,11 +44,45 @@ public static class StringAssertions
             return a;
         }
 
+        public Assertions<string> NotEndWith(string expected)
+        {
+            Fail.When(
+                a.Subject.EndsWith(expected, StringComparison.Ordinal),
+                MessageBuilder.Expected(a.SubjectExpression, $"not to end with {MessageBuilder.Format(expected)}", a.Subject));
+            return a;
+        }
+
         public Assertions<string> Match(string pattern)
         {
             Fail.When(
                 !Regex.IsMatch(a.Subject, pattern),
                 MessageBuilder.Expected(a.SubjectExpression, $"to match pattern \"{pattern}\"", a.Subject));
+            return a;
+        }
+
+        public Assertions<string> NotMatch(string pattern)
+        {
+            Fail.When(
+                Regex.IsMatch(a.Subject, pattern),
+                MessageBuilder.Expected(a.SubjectExpression, $"not to match pattern \"{pattern}\"", a.Subject));
+            return a;
+        }
+
+        public Assertions<string> ContainAll(params IEnumerable<string> expected)
+        {
+            var missing = expected.Where(x => !a.Subject.Contains(x, StringComparison.Ordinal)).ToList();
+            Fail.When(
+                missing.Count > 0,
+                () => MessageBuilder.Expected(a.SubjectExpression, $"to contain all of {MessageBuilder.Format(missing)}", a.Subject));
+            return a;
+        }
+
+        public Assertions<string> ContainAny(params IEnumerable<string> expected)
+        {
+            var expectedList = expected as IReadOnlyCollection<string> ?? expected.ToList();
+            Fail.When(
+                !expectedList.Any(x => a.Subject.Contains(x, StringComparison.Ordinal)),
+                () => MessageBuilder.Expected(a.SubjectExpression, $"to contain any of {MessageBuilder.Format(expectedList)}", a.Subject));
             return a;
         }
 
